@@ -188,7 +188,7 @@ You can fine the full API documentation in the [official documentation](https://
 
 
 ---
-###Example###
+### Example
 
 ```
 package main
@@ -213,7 +213,7 @@ func main() {
 
 	au := authy.NewAuthyAPI("jh1g23jh12j3hgj1h23ghg")
 
-	user, err := au.RegisterUser("somemail.com", 7, "234234-334234", url.Values{})
+	user, err := au.RegisterUser("some@mail.com", 7, "234234-334234", url.Values{})
 	if err != nil {
 		fmt.Println("Register User error: " + err.Error() + " message: " + user.Message)
 		return
