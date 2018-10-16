@@ -187,3 +187,92 @@ make test
 You can fine the full API documentation in the [official documentation](https://docs.authy.com) page.
 
 
+---
+###Example###
+
+```
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/url"
+	"os"
+	"strings"
+
+	"github.com/MasterDimmy/go-authy"
+)
+
+func main() {
+	f, err := os.Create("log.txt")
+	if err != nil {
+		fmt.Println("Log create: " + err.Error())
+		return
+	}
+	authy.Logger = log.New(f, "", log.Lshortfile)
+
+	au := authy.NewAuthyAPI("jh1g23jh12j3hgj1h23ghg")
+
+	user, err := au.RegisterUser("somemail.com", 7, "234234-334234", url.Values{})
+	if err != nil {
+		fmt.Println("Register User error: " + err.Error() + " message: " + user.Message)
+		return
+	}
+
+	if user.Valid() {
+		fmt.Println("user is valid, id: " + user.ID + " message: " + user.Message)
+		//# store userResponse.User.Id in your user database
+	}
+
+	sms, err := au.RequestSMS(user.ID, url.Values{})
+	if err != nil {
+		fmt.Println("RequestSMS: " + err.Error())
+		return
+	}
+
+	//sms was send, waiting for token
+	if !sms.Valid() {
+		fmt.Println("sms was not sent")
+		return
+	}
+
+	verify_token := func() {
+		var user_token string
+		fmt.Println("Input got token:\n")
+		fmt.Scanf("%s", &user_token) //"token-entered-by-the-user"
+		if len(user_token) == 0 {
+			fmt.Println("no scan")
+			return
+		}
+		user_token = strings.Trim(user_token, " \n\r\t")
+		fmt.Println("Got user token: " + user_token)
+
+		verification, err := au.VerifyToken(user.ID, user_token, url.Values{"ip": {"127.0.0.1"}})
+		if err != nil {
+			fmt.Println("VerifyToken User: " + err.Error())
+			return
+		}
+
+		if verification.Valid() {
+			fmt.Println("verification is valid")
+		} else {
+			fmt.Println("no valid verification")
+		}
+	}
+
+	verify_token()
+
+	phoneCall, err := au.RequestPhoneCall(user.ID, url.Values{"force": {"true"}})
+	if phoneCall.Valid() {
+		fmt.Println("phone call is valid")
+	} else {
+		fmt.Println("phone call is not valid")
+	}
+
+	verify_token()
+
+	fmt.Println("end")
+}
+```
+
+
